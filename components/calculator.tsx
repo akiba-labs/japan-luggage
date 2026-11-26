@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CardDisclaimer } from "@/components/card-disclaimer";
 import { ShareBar } from "@/components/share-bar";
+import { isGithubPages, pagesSiteUrl } from "@/lib/hosting";
 import { AIRPORTS, LINES, LINE_LABEL, PREFECTURES, checkLuggage, type Line, type Payment } from "@/lib/luggage";
 import { EXAMPLE_SHARED, PUBLIC_URL, resultPath, toInput, yen, type Shared } from "@/lib/share";
 
@@ -78,7 +79,7 @@ export function Calculator({ initial }: { initial?: Shared }) {
     }
   })();
   const toAirport = AIRPORTS.some((a) => a.id === to);
-  const shareUrl = `${PUBLIC_URL}${resultPath(shared)}`;
+  const shareUrl = isGithubPages ? `${pagesSiteUrl(PUBLIC_URL)}/` : `${PUBLIC_URL}${resultPath(shared)}`;
   const fwd = result?.forwarding as (Record<string, unknown> & { accepted: boolean }) | null | undefined;
   const sk = result?.shinkansen;
   const verdictColor = sk?.verdict === "ok" ? "text-teal-200" : sk?.verdict === "reserve_oversized_seat" ? "text-amber" : "text-rose-300";
@@ -219,15 +220,21 @@ export function Calculator({ initial }: { initial?: Shared }) {
                 ))}
               </ul>
               <div className="mt-6 border-t border-line pt-4" data-testid="share-result">
-                <p className="text-xs text-muted">Share this result. The link carries only these numbers and places; nothing is stored.</p>
+                <p className="text-xs text-muted">
+                  {isGithubPages
+                    ? "Share the checker. A link to this exact result returns when hosting is back."
+                    : "Share this result. The link carries only these numbers and places; nothing is stored."}
+                </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <ShareBar
                     url={shareUrl}
                     text={`My ${result.bag.totalCm} cm suitcase in Japan: ${verdictText.toLowerCase()} on the Shinkansen${fwd && fwd.accepted ? `, forwarding ${yen(fwd.perBagJPY as number)}` : ""}. Free checker:`}
                   />
-                  <a href={resultPath(shared)} className="text-sm text-muted underline underline-offset-2 hover:text-foreground">
-                    Open result page
-                  </a>
+                  {isGithubPages ? null : (
+                    <a href={resultPath(shared)} className="text-sm text-muted underline underline-offset-2 hover:text-foreground">
+                      Open result page
+                    </a>
+                  )}
                 </div>
               </div>
             </>
