@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Calculator } from "@/components/calculator";
 import { FaqSection, type FaqItem } from "@/components/faq-section";
+import { API_PAUSED_NOTE, isGithubPages, pagesSiteUrl, withBasePath } from "@/lib/hosting";
 import { AIRPORT_FEE_JPY, PREFECTURES, rateFor } from "@/lib/luggage";
 import { EXAMPLE_SHARED, PUBLIC_URL, resultPath, yen } from "@/lib/share";
 
@@ -36,7 +37,7 @@ const webAppLd = {
   "@type": "WebApplication",
   name: "Japan Luggage Check",
   alternateName: ["Shinkansen luggage size checker", "Japan luggage forwarding cost calculator"],
-  url: PUBLIC_URL,
+  url: isGithubPages ? pagesSiteUrl(PUBLIC_URL) : PUBLIC_URL,
   applicationCategory: "TravelApplication",
   operatingSystem: "Any",
   isAccessibleForFree: true,
@@ -94,7 +95,9 @@ const faq: FaqItem[] = [
   },
   {
     q: "Is there a free API for Japan luggage rules and Yamato forwarding prices?",
-    a: `Yes, this one. Free, no key, CORS open: GET ${PUBLIC_URL}/api/check?lengthCm=75&widthCm=50&heightCm=30&weightKg=22&from=tokyo&to=kyoto&line=tokaido returns the Shinkansen verdict, Yamato size class, cash and cashless price, and sources. Full tables at ${PUBLIC_URL}/api/rules, OpenAPI at ${PUBLIC_URL}/openapi.json, and the japan_luggage_check tool on https://free-agent-tools.vercel.app/mcp.`,
+    a: isGithubPages
+      ? API_PAUSED_NOTE
+      : `Yes, this one. Free, no key, CORS open: GET ${PUBLIC_URL}/api/check?lengthCm=75&widthCm=50&heightCm=30&weightKg=22&from=tokyo&to=kyoto&line=tokaido returns the Shinkansen verdict, Yamato size class, cash and cashless price, and sources. Full tables at ${PUBLIC_URL}/api/rules, OpenAPI at ${PUBLIC_URL}/openapi.json, and the japan_luggage_check tool on https://free-agent-tools.vercel.app/mcp.`,
   },
 ];
 
@@ -141,8 +144,8 @@ export default function HomePage() {
           </table>
         </div>
         <p className="mt-3 text-sm text-muted">
-          One way, per bag, tax included, Yamato rates in force since 2025-10-01 (cash unless noted). −¥100 if you drop it off yourself; +¥{AIRPORT_FEE_JPY} to an airport. Example shareable result:{" "}
-          <a className="underline underline-offset-2 hover:text-foreground" href={resultPath(EXAMPLE_SHARED)}>
+          One way, per bag, tax included, Yamato rates in force since 2025-10-01 (cash unless noted). −¥100 if you drop it off yourself; +¥{AIRPORT_FEE_JPY} to an airport. {isGithubPages ? "Example:" : "Example shareable result:"}{" "}
+          <a className="underline underline-offset-2 hover:text-foreground" href={isGithubPages ? withBasePath("/") : resultPath(EXAMPLE_SHARED)}>
             28-inch suitcase Tokyo → Kyoto
           </a>
           .
@@ -151,17 +154,27 @@ export default function HomePage() {
 
       <section className="mt-16 max-w-3xl">
         <h2 className="font-display text-3xl tracking-tight sm:text-4xl">Agent-callable JSON API</h2>
-        <p className="mt-4 text-sm leading-relaxed text-muted sm:text-base">
-          Free, no key, CORS open.{" "}
-          <code className="rounded bg-panel px-1.5 py-0.5 font-mono text-xs text-foreground">GET {PUBLIC_URL}/api/check?totalCm=170&amp;weightKg=20&amp;from=kyoto&amp;to=kix&amp;line=tokaido</code> or POST JSON. Also{" "}
-          <a className="underline underline-offset-2 hover:text-foreground" href="/api/rules">/api/rules</a>,{" "}
-          <a className="underline underline-offset-2 hover:text-foreground" href="/openapi.json">/openapi.json</a>,{" "}
-          <a className="underline underline-offset-2 hover:text-foreground" href="/llms.txt">/llms.txt</a>, and the MCP tool on{" "}
-          <a className="underline underline-offset-2 hover:text-foreground" href="https://free-agent-tools.vercel.app/" target="_blank" rel="noopener noreferrer">
-            free-agent-tools
-          </a>
-          .
-        </p>
+        {isGithubPages ? (
+          <p className="mt-4 text-sm leading-relaxed text-muted sm:text-base">
+            {API_PAUSED_NOTE}{" "}
+            <a className="underline underline-offset-2 hover:text-foreground" href={withBasePath("/llms.txt")}>
+              llms.txt
+            </a>{" "}
+            describes the checker and the API contract.
+          </p>
+        ) : (
+          <p className="mt-4 text-sm leading-relaxed text-muted sm:text-base">
+            Free, no key, CORS open.{" "}
+            <code className="rounded bg-panel px-1.5 py-0.5 font-mono text-xs text-foreground">GET {PUBLIC_URL}/api/check?totalCm=170&amp;weightKg=20&amp;from=kyoto&amp;to=kix&amp;line=tokaido</code> or POST JSON. Also{" "}
+            <a className="underline underline-offset-2 hover:text-foreground" href="/api/rules">/api/rules</a>,{" "}
+            <a className="underline underline-offset-2 hover:text-foreground" href="/openapi.json">/openapi.json</a>,{" "}
+            <a className="underline underline-offset-2 hover:text-foreground" href="/llms.txt">/llms.txt</a>, and the MCP tool on{" "}
+            <a className="underline underline-offset-2 hover:text-foreground" href="https://free-agent-tools.vercel.app/" target="_blank" rel="noopener noreferrer">
+              free-agent-tools
+            </a>
+            .
+          </p>
+        )}
       </section>
 
       <FaqSection items={faq} heading="Japan luggage questions" />

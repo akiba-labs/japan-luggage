@@ -1,5 +1,7 @@
 import { ImageResponse } from "next/og";
 
+export const dynamic = "force-static";
+
 export const alt = "Japan Luggage Check: Shinkansen suitcase rule and Yamato forwarding cost";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
